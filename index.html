@@ -6,8 +6,11 @@
   <title>퍼팅 계산기</title>
 </head>
 <style>
+    :root {
+        --vh: 100%;
+    }
     html, body {
-        height:100vh;
+        height: var(--vh);
         width:100vw;
         margin:0;
         padding:0;
@@ -192,7 +195,11 @@
         });        
     });
   
-
+    const setVh = () => {
+        document.documentElement.style.setProperty('--vh', `${window.innerHeight}px`)
+    };
+    window.addEventListener('resize', setVh);
+    setVh();
 </script>
 
 </body>
