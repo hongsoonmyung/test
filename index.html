@@ -94,8 +94,26 @@
             <div id="target"></div>
     
             <div style="margin-top:20px;margin-bottom: 10px;">
-                <input name="ptarget" type="radio" value="left" >좌측
-                <input name="ptarget" type="radio" value="right" checked>우측
+                <input id="speed1" name="speed" type="radio" value="1" ><label for="speed1">매빠</label>
+                <input id="speed2" name="speed" type="radio" value="2" checked><label for="speed2">약빠</label>
+            </div>      
+            <div style="margin-top:20px;margin-bottom: 10px;">
+                <input id="heightType1" name="heightType" type="radio" value="1" ><label for="heightType1">오르막</label>
+                <input id="heightType2" name="heightType" type="radio" value="2" checked><label for="heightType2">내리막</label>
+            </div>                              
+            <div>
+                <label for="distance">실제 거리</label>
+                <input type="number" id="realDistance" placeholder="거리" value="5" style="width:100%;height:30px;">
+            </div>
+            <div>
+                <label for="distance">높이</label>
+                <input type="number" id="height" placeholder="높이" value="0.12" style="width:100%;height:30px;">
+            </div>
+            <input type="button" id="buttonDistCalc" value="거리계산" style="width:100%;height:50px;margin-top:20px;">
+    
+            <div style="margin-top:20px;margin-bottom: 10px;">
+                <input id="ptarget1" name="ptarget" type="radio" value="left" ><label for="">좌측</label>
+                <input id="ptarget2" name="ptarget" type="radio" value="right" checked><label for="">우측</label>
             </div>
             <div>
                 <label for="distance">공략 거리</label>
@@ -105,7 +123,7 @@
                 <label for="guideCup">가이드 컵수</label>
                 <input type="number" id="guideCup" placeholder="가이드 컵수" value="1" style="width:100%;height:30px;">
             </div>
-            <input type="button" id="buttonCalc" value="계산하기" style="width:100%;height:50px;margin-top:20px;">
+            <input type="button" id="buttonCalc" value="공위치 계산" style="width:100%;height:50px;margin-top:20px;">
         
 
         </div>
@@ -118,6 +136,27 @@
     const weight = 2.5;
     const mm = 2;
     const cup = 1;
+
+    document.getElementById("buttonDistCalc").onclick = () => {
+        const speed = document.querySelector('input[name="speed"]:checked').value;
+        const heightType = document.getElementById("distance").heightType;   
+        const realDistance = parseFloat(document.getElementById("realDistance").value);
+        const height = parseFloat(document.getElementById("height").value);
+
+        const ditanceWeight = speed === '1' ? 15 : 10;
+
+        if(heightType === '1') {
+            let distance = realDistance + (height * ditanceWeight);
+            document.getElementById("distance").value = distance;
+
+        } else {
+            let distance = realDistance - (height * 10);
+            document.getElementById("distance").value = distance;
+        }
+
+
+
+    };
 
     document.getElementById("buttonCalc").onclick = () => {
 
