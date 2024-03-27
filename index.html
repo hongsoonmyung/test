@@ -68,11 +68,11 @@
     
     
     <div id="box">
-        <div style="width:100%;text-align: center;visibility: hidden;">
+        <div style="width:100%;text-align: center;">
             <img src="./golfzone.jpg" style="width:100px;height:auto;">
         </div>
         <div id="content">
-            <table style="visibility: hidden;">
+            <table>
                 <tr>
                     <td style="background-color: green";></td>
                 </tr>
@@ -181,6 +181,8 @@
                 document.getElementById("ball").style.top = (103 - (calcWeight*10)) + 'px';
                 document.getElementById("target").style.top = '95px';
             }
+
+            scrollTo(0, 0);
             
         };
 
