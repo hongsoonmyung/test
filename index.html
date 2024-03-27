@@ -37,7 +37,7 @@
         top: 103px;
         width:43px;
         height:43px;
-        background-color: white;
+        background-color: yellow;
         border-radius: 50%;
         display: inline-block;
     }
@@ -68,11 +68,11 @@
     
     
     <div id="box">
-        <div style="width:100%;text-align: center;">
+        <div style="width:100%;text-align: center;visibility: hidden;">
             <img src="./golfzone.jpg" style="width:100px;height:auto;">
         </div>
         <div id="content">
-            <table>
+            <table style="visibility: hidden;">
                 <tr>
                     <td style="background-color: green";></td>
                 </tr>
@@ -112,8 +112,8 @@
             <input type="button" id="buttonDistCalc" value="거리계산" style="width:100%;height:50px;margin-top:20px;">
     
             <div style="margin-top:20px;margin-bottom: 10px;">
-                <input id="ptarget1" name="ptarget" type="radio" value="left" ><label for="">좌측</label>
-                <input id="ptarget2" name="ptarget" type="radio" value="right" checked><label for="">우측</label>
+                <input id="ptarget1" name="ptarget" type="radio" value="left" ><label for="ptarget1">좌측</label>
+                <input id="ptarget2" name="ptarget" type="radio" value="right" checked><label for="ptarget2">우측</label>
             </div>
             <div>
                 <label for="distance">공략 거리</label>
@@ -143,7 +143,7 @@
 
         document.getElementById("buttonDistCalc").onclick = () => {
             const speed = document.querySelector('input[name="speed"]:checked').value;
-            const heightType = document.getElementById("distance").heightType;   
+            const heightType = document.querySelector('input[name="heightType"]:checked').value;
             const realDistance = parseFloat(document.getElementById("realDistance").value);
             const height = parseFloat(document.getElementById("height").value);
 
@@ -152,7 +152,7 @@
             if(heightType === '1') {
                 let distance = realDistance + (height * ditanceWeight);
                 document.getElementById("distance").value = distance;
-
+5
             } else {
                 let distance = realDistance - (height * 10);
                 document.getElementById("distance").value = distance;
