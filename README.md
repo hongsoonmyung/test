@@ -36,7 +36,7 @@ graph TB
     MW -->|단말기 제어/확인| Terminal
     MW -->|Callback| Callback
     Callback -->|응답| MW
-    Relay -->|최종 응답 (비동기)| Client
+    Relay -->|최종 응답 | Client
     
     classDef relayStyle fill:#e1f5fe
     classDef mwStyle fill:#f3e5f5
