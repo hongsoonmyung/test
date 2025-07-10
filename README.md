@@ -30,7 +30,7 @@ graph TB
         Terminal[주차장 단말기]
     end
     
-    Client -->|HTTP POST (비동기)| Relay
+    Client -->|HTTP POST | Relay
     Relay -->|비동기 요청| MW
     MW -->|데이터 조회/처리| ParkingDB
     MW -->|단말기 제어/확인| Terminal
