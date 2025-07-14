@@ -104,15 +104,15 @@ sequenceDiagram
 #### 📥 Request (중계서버 → 미들웨어)
 | 필드명 | 타입 | 필수 | 설명 | 예시 |
 |--------|------|------|------|------|
-| transactionId | string | Y | 트랜잭션 ID | "TXN_20241201_001" |
+| transactionId | string | Y | 트랜잭션 ID (UUID) | "550e8400-e29b-41d4-a716-446655440000" |
 | carNo | string | Y | 차량번호 | "12가3456" |
 | periodDays | integer | Y | 조회 기간 (일수) | 7 |
 
 #### 📤 Response (미들웨어 → 중계서버)
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "요청을 수락했습니다."
 }
 ```
@@ -122,15 +122,15 @@ sequenceDiagram
 
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "정상 처리되었습니다.",
   "data": {
-    "inCarDt": "20241201",
-    "inCarSeqNo": "12345",
-    "carNo": "12가3456",
-    "inCarTm": "20241201T10:00:00",
-    "inParkCustTy": "NORMAL",
+    "inCarDt": "20150710",
+    "inCarSeqNo": "000001",
+    "carNo": "11가1234",
+    "inCarTm": "090000",
+    "inParkCustTy": "1",
     "inParkCutyTyName": "일반고객"
   }
 }
@@ -139,8 +139,8 @@ sequenceDiagram
 #### 📤 Callback Response (중계서버 → 미들웨어)
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "Callback을 수신했습니다."
 }
 ```
@@ -185,16 +185,16 @@ sequenceDiagram
 #### 📥 Request (중계서버 → 미들웨어)
 | 필드명 | 타입 | 필수 | 설명 | 예시 |
 |--------|------|------|------|------|
-| transactionId | string | Y | 트랜잭션 ID | "TXN_20241201_002" |
-| inCarDt | string | Y | 입차일자 (YYYYMMDD) | "20241201" |
-| inCarSeqNo | string | Y | 입차순번 | "12345" |
-| outScheduledTm | string | Y | 출차예정시간 (ISO 8601) | "20241201T15:30:00" |
+| transactionId | string | Y | 트랜잭션 ID (UUID) | "550e8400-e29b-41d4-a716-446655440001" |
+| inCarDt | string | Y | 입차일자 (YYYYMMDD) | "20150710" |
+| inCarSeqNo | string | Y | 입차순번 | "000001" |
+| outScheduledTm | string | Y | 출차예정시간 (YYYYMMDDHHMMSS) | "20250714170000" |
 
 #### 📤 Response (미들웨어 → 중계서버)
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "요청을 수락했습니다."
 }
 ```
@@ -204,26 +204,26 @@ sequenceDiagram
 
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "정상 처리되었습니다.",
   "data": {
-    "inCarDt": "20241201",
-    "inCarSeqNo": "12345",
-    "carNo": "12가3456",
-    "inCarTm": "20241201T10:00:00",
-    "outScheduledTm": "20241201T15:30:00",
+    "inCarDt": "20150710",
+    "inCarSeqNo": "000001",
+    "carNo": "11가1234",
+    "inCarTm": "090000",
+    "outScheduledTm": "20250714170000",
     "originalParkChrg": 5000,
-    "discountChrg": 1000,
-    "parkChrg": 4000,
+    "discountChrg": 3000,
+    "parkChrg": 2000,
     "discountInfo": [
       {
-        "discountMtd": "COUPON",
-        "discountTkKnd": "PARKING_DISCOUNT",
+        "discountMtd": "할인방식",
+        "discountTkKnd": "할인권종류",
         "discountAmt": 1000,
-        "webDiscountRegSeq": "WEB001",
-        "discountNumber": "DC001",
-        "remark": "웹 할인권"
+        "webDiscountRegSeq": "0001",
+        "discountNumber": "discount123456",
+        "remark": "비고"
       }
     ]
   }
@@ -233,8 +233,8 @@ sequenceDiagram
 #### 📤 Callback Response (중계서버 → 미들웨어)
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "Callback을 수신했습니다."
 }
 ```
@@ -279,21 +279,21 @@ sequenceDiagram
 #### 📥 Request (중계서버 → 미들웨어)
 | 필드명 | 타입 | 필수 | 설명 | 예시 |
 |--------|------|------|------|------|
-| transactionId | string | Y | 트랜잭션 ID | "TXN_20241201_003" |
-| inCarDt | string | Y | 입차일자 (YYYYMMDD) | "20241201" |
-| inCarSeqNo | string | Y | 입차순번 | "12345" |
-| discountMtd | string | Y | 할인방법 | "COUPON" |
-| discountTkKnd | string | Y | 할인권종류 | "PARKING_DISCOUNT" |
-| discountNumber | string | Y | 할인번호 | "DC001" |
-| discountApplyDt | string | Y | 할인적용일자 (YYYYMMDD) | "20241201" |
-| discountApplyTm | string | Y | 할인적용시간 (ISO 8601) | "20241201T10:00:00" |
-| remark | string | N | 비고 | "웹 할인권" |
+| transactionId | string | Y | 트랜잭션 ID (UUID) | "550e8400-e29b-41d4-a716-446655440002" |
+| inCarDt | string | Y | 입차일자 (YYYYMMDD) | "20150710" |
+| inCarSeqNo | string | Y | 입차순번 | "000001" |
+| discountMtd | string | Y | 할인방법 | "할인방식" |
+| discountTkKnd | string | Y | 할인권종류 | "할인권종류" |
+| discountNumber | string | Y | 할인번호 | "discount123456" |
+| discountApplyDt | string | Y | 할인적용일자 (YYYYMMDD) | "20250704" |
+| discountApplyTm | string | Y | 할인적용시간 (HHMMSS) | "090000" |
+| remark | string | N | 비고 | "비고" |
 
 #### 📤 Response (미들웨어 → 중계서버)
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "요청을 수락했습니다."
 }
 ```
@@ -303,8 +303,8 @@ sequenceDiagram
 
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "정상 처리되었습니다."
 }
 ```
@@ -312,8 +312,8 @@ sequenceDiagram
 #### 📤 Callback Response (중계서버 → 미들웨어)
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "Callback을 수신했습니다."
 }
 ```
@@ -358,15 +358,15 @@ sequenceDiagram
 #### 📥 Request (중계서버 → 미들웨어)
 | 필드명 | 타입 | 필수 | 설명 | 예시 |
 |--------|------|------|------|------|
-| transactionId | string | Y | 트랜잭션 ID | "TXN_20241201_004" |
-| inCarDt | string | Y | 입차일자 (YYYYMMDD) | "20241201" |
-| inCarSeqNo | string | Y | 입차순번 | "12345" |
+| transactionId | string | Y | 트랜잭션 ID (UUID) | "550e8400-e29b-41d4-a716-446655440003" |
+| inCarDt | string | Y | 입차일자 (YYYYMMDD) | "20150710" |
+| inCarSeqNo | string | Y | 입차순번 | "000001" |
 
 #### 📤 Response (미들웨어 → 중계서버)
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "요청을 수락했습니다."
 }
 ```
@@ -376,18 +376,18 @@ sequenceDiagram
 
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "정상 처리되었습니다.",
   "data": {
     "discountInfo": [
       {
-        "discountMtd": "COUPON",
-        "discountTkKnd": "PARKING_DISCOUNT",
+        "discountMtd": "할인방식",
+        "discountTkKnd": "할인권종류",
         "discountAmt": 1000,
-        "webDiscountRegSeq": "WEB001",
-        "discountNumber": "DC001",
-        "remark": "웹 할인권"
+        "webDiscountRegSeq": "0001",
+        "discountNumber": "discount123456",
+        "remark": "비고"
       }
     ]
   }
@@ -397,8 +397,8 @@ sequenceDiagram
 #### 📤 Callback Response (중계서버 → 미들웨어)
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "Callback을 수신했습니다."
 }
 ```
@@ -443,16 +443,16 @@ sequenceDiagram
 #### 📥 Request (중계서버 → 미들웨어)
 | 필드명 | 타입 | 필수 | 설명 | 예시 |
 |--------|------|------|------|------|
-| transactionId | string | Y | 트랜잭션 ID | "TXN_20241201_005" |
-| inCarDt | string | Y | 입차일자 (YYYYMMDD) | "20241201" |
-| inCarSeqNo | string | Y | 입차순번 | "12345" |
-| discountNumber | string | Y | 할인번호 | "DC001" |
+| transactionId | string | Y | 트랜잭션 ID (UUID) | "550e8400-e29b-41d4-a716-446655440004" |
+| inCarDt | string | Y | 입차일자 (YYYYMMDD) | "20150710" |
+| inCarSeqNo | string | Y | 입차순번 | "000001" |
+| discountNumber | string | Y | 할인번호 | "discount123456" |
 
 #### 📤 Response (미들웨어 → 중계서버)
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "요청을 수락했습니다."
 }
 ```
@@ -462,8 +462,8 @@ sequenceDiagram
 
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "정상 처리되었습니다."
 }
 ```
@@ -471,8 +471,8 @@ sequenceDiagram
 #### 📤 Callback Response (중계서버 → 미들웨어)
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "Callback을 수신했습니다."
 }
 ```
@@ -507,7 +507,7 @@ sequenceDiagram
 
 | 에러 코드 | 설명 | HTTP 상태 코드 |
 |-----------|------|----------------|
-| 0000 | 정상 처리 | 200 |
+| success | 정상 처리 | 200 |
 | 4001 | 필수 파라미터 누락 | 400 |
 | 4002 | 인증 실패 | 401 |
 | 4003 | 권한 없음 | 403 |
@@ -527,8 +527,8 @@ sequenceDiagram
 curl -X POST https://middleware.example.com/incar/search \
   -H "Content-Type: application/json" \
   -d '{
-    "transactionId": "TXN_20241201_001",
-    "carNo": "12가3456",
+    "transactionId": "550e8400-e29b-41d4-a716-446655440000",
+    "carNo": "11가1234",
     "periodDays": 7
   }'
 ```
@@ -536,26 +536,26 @@ curl -X POST https://middleware.example.com/incar/search \
 #### 📤 미들웨어 즉시 응답
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "요청을 수락했습니다."
 }
 ```
 
 #### 📥 미들웨어 Callback (나중에 전송)
 ```bash
-curl -X POST https://relay.example.com/api/v2/mw/callback/TXN_20241201_001 \
+curl -X POST https://relay.example.com/api/v2/mw/callback/550e8400-e29b-41d4-a716-446655440000 \
   -H "Content-Type: application/json" \
   -d '{
-    "status": "SUCCESS",
-    "resultCode": "0000",
+    "status": "200",
+    "resultCode": "success",
     "resultMessage": "정상 처리되었습니다.",
     "data": {
-      "inCarDt": "20241201",
-      "inCarSeqNo": "12345",
-      "carNo": "12가3456",
-      "inCarTm": "20241201T10:00:00",
-      "inParkCustTy": "NORMAL",
+      "inCarDt": "20150710",
+      "inCarSeqNo": "000001",
+      "carNo": "11가1234",
+      "inCarTm": "090000",
+      "inParkCustTy": "1",
       "inParkCutyTyName": "일반고객"
     }
   }'
@@ -564,8 +564,8 @@ curl -X POST https://relay.example.com/api/v2/mw/callback/TXN_20241201_001 \
 #### 📤 중계서버 Callback 응답
 ```json
 {
-  "status": "SUCCESS",
-  "resultCode": "0000",
+  "status": "200",
+  "resultCode": "success",
   "resultMessage": "Callback을 수신했습니다."
 }
 ```
@@ -575,12 +575,13 @@ curl -X POST https://relay.example.com/api/v2/mw/callback/TXN_20241201_001 \
 ## 🔧 개발 가이드
 
 ### 1. 트랜잭션 ID 생성 규칙
-- 형식: `TXN_YYYYMMDD_XXXXX`
-- 예시: `TXN_20241201_001`
+- 형식: `UUID v4`
+- 예시: `550e8400-e29b-41d4-a716-446655440000`
+- 생성 방법: 표준 UUID 라이브러리 사용
 
 ### 2. 날짜/시간 형식
 - 날짜: `YYYYMMDD` (예: 20241201)
-- 시간: `ISO 8601` (예: 20241201T15:30:00)
+- 시간: `HHMMSS` (예: 153000)
 
 ### 3. 비동기 처리 고려사항
 - 모든 API는 즉시 응답 후 비동기 처리
@@ -591,31 +592,6 @@ curl -X POST https://relay.example.com/api/v2/mw/callback/TXN_20241201_001 \
 - HTTP 상태 코드와 resultCode 모두 확인
 - 네트워크 오류 시 재시도
 - Callback 미수신 시 타임아웃 처리
-
-### 5. 콜백 구현 가이드
-```javascript
-// 중계서버 Callback 엔드포인트 구현 예시
-app.post('/api/v2/mw/callback/:transactionId', (req, res) => {
-  const { transactionId } = req.params;
-  const { status, resultCode, resultMessage, data } = req.body;
-  
-  // 1. 트랜잭션 ID로 원본 요청 찾기
-  const originalRequest = findRequestByTransactionId(transactionId);
-  
-  // 2. Callback 데이터 저장
-  saveCallbackData(transactionId, { status, resultCode, resultMessage, data });
-  
-  // 3. 고객사에게 최종 응답 전송
-  sendFinalResponseToClient(originalRequest, { status, resultCode, resultMessage, data });
-  
-  // 4. Callback 수신 확인 응답
-  res.json({
-    status: "SUCCESS",
-    resultCode: "0000",
-    resultMessage: "Callback을 수신했습니다."
-  });
-});
-```
 
 ---
 
