@@ -20,8 +20,19 @@ graph TB
     end
     
     subgraph "중계서버 영역"
-        Relay[중계서버]
-        Callback[Callback 엔드포인트]
+        subgraph "Request 처리부"
+            RequestHandler[Request 핸들러]
+            SessionManager[세션 관리자]
+        end
+        
+        subgraph "비동기 처리부"
+            AsyncProcessor[비동기 처리기]
+        end
+        
+        subgraph "Callback 처리부"
+            CallbackHandler[Callback 핸들러]
+            ResponseManager[응답 관리자]
+        end
     end
     
     subgraph "주차장 시스템"
@@ -30,23 +41,29 @@ graph TB
         Terminal[주차장 단말기]
     end
     
-    Client -->|HTTP POST 요청| Relay
-    Relay -->|비동기 요청| MW
+    Client -->|HTTP POST 요청| RequestHandler
+    RequestHandler -->|세션 생성 및 저장| SessionManager
+    RequestHandler -->|비동기 작업 요청| AsyncProcessor
+    AsyncProcessor -->|미들웨어 호출| MW
+    
     MW -->|데이터 조회/처리| ParkingDB
     MW -->|단말기 제어/확인| Terminal
-    MW -->|Callback 요청| Callback
-    Callback -->|Callback 응답| MW
-    Callback -->|최종 응답 전송| Client
+    MW -->|Callback 요청| CallbackHandler
+    
+    CallbackHandler -->|세션 조회| SessionManager
+    SessionManager -->|원본 Request 세션 반환| ResponseManager
+    ResponseManager -->|최종 응답 전송| Client
     
     classDef relayStyle fill:#e1f5fe
     classDef mwStyle fill:#f3e5f5
     classDef callbackStyle fill:#e8f5e8
     classDef clientStyle fill:#fff3e0
     classDef parkingStyle fill:#fce4ec
+    classDef sessionStyle fill:#fff8e1
     
-    class Relay relayStyle
+    class RequestHandler,AsyncProcessor,CallbackHandler,ResponseManager relayStyle
+    class SessionManager sessionStyle
     class MW mwStyle
-    class Callback callbackStyle
     class Client clientStyle
     class ParkingDB parkingStyle
     class Terminal parkingStyle
