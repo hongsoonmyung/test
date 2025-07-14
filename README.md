@@ -596,6 +596,7 @@ curl -X POST https://relay.example.com/api/v2/mw/callback/550e8400-e29b-41d4-a71
 ---
 
 ## 📚 관련 문서
+
 - [OpenAPI 스펙 파일](./api_specification.yaml)
 - [시퀀스 다이어그램](./api_flow_diagram.md)
 - [프로토콜 정의](./protocol.txt) 
