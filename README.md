@@ -34,7 +34,7 @@ graph TB
     Relay -->|2. 비동기 요청| MW
     MW -->|3. 데이터 조회/처리| ParkingDB
     MW -->|4. 단말기 제어/확인| Terminal
-    MW -->|5. Callback 요청| Callback
+    MW -->|5. Callback 전송| Callback
     Callback -->|6. Callback 응답| MW
     Callback -->|7. 최종 응답 전송| Client
     
@@ -596,7 +596,6 @@ curl -X POST https://relay.example.com/api/v2/mw/callback/550e8400-e29b-41d4-a71
 ---
 
 ## 📚 관련 문서
-
 - [OpenAPI 스펙 파일](./api_specification.yaml)
 - [시퀀스 다이어그램](./api_flow_diagram.md)
 - [프로토콜 정의](./protocol.txt) 
