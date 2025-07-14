@@ -34,7 +34,7 @@ graph TB
     Relay -->|비동기 요청| MW
     MW -->|데이터 조회/처리| ParkingDB
     MW -->|단말기 제어/확인| Terminal
-    MW -->|비동기 응답(callback)| Callback
+    MW -->|비동기 응답 callback| Callback
     Callback -->|세션 기반 최종 응답| Relay
     Relay -->|최종 응답 전송| Client
     
