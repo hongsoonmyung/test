@@ -30,13 +30,13 @@ graph TB
         Terminal[주차장 단말기]
     end
     
-    Client -->|1. HTTP POST 요청| Relay
-    Relay -->|2. 비동기 요청| MW
-    MW -->|3. 데이터 조회/처리| ParkingDB
-    MW -->|4. 단말기 제어/확인| Terminal
-    MW -->|5. Callback 전송| Callback
-    Callback -->|6. Callback 응답| MW
-    Callback -->|7. 최종 응답 전송| Client
+    Client -->|HTTP POST | Relay
+    Relay -->|비동기 요청| MW
+    MW -->|데이터 조회/처리| ParkingDB
+    MW -->|단말기 제어/확인| Terminal
+    MW -->|Callback| Callback
+    Callback -->|응답| MW
+    Relay -->|최종 응답 | Client
     
     classDef relayStyle fill:#e1f5fe
     classDef mwStyle fill:#f3e5f5
