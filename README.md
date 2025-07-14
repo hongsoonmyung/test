@@ -113,6 +113,14 @@ sequenceDiagram
 | carNo | string | Y | 차량번호 | "12가3456" |
 | periodDays | integer | Y | 조회 기간 (일수) | 7 |
 
+```json
+{
+  "transactionId": "550e8400-e29b-41d4-a716-446655440000",
+  "carNo": "12가3456",
+  "periodDays": 7
+}
+```
+
 #### 📤 Response (미들웨어 → 중계서버)
 ```json
 {
@@ -165,6 +173,15 @@ sequenceDiagram
 | inCarDt | string | Y | 입차일자 (YYYYMMDD) | "20150710" |
 | inCarSeqNo | string | Y | 입차순번 | "000001" |
 | outScheduledTm | string | Y | 출차예정시간 (YYYYMMDDHHMMSS) | "20250714170000" |
+
+```json
+{
+  "transactionId": "550e8400-e29b-41d4-a716-446655440001",
+  "inCarDt": "20150710",
+  "inCarSeqNo": "000001",
+  "outScheduledTm": "20250714170000"
+}
+```
 
 #### 📤 Response (미들웨어 → 중계서버)
 ```json
@@ -236,6 +253,20 @@ sequenceDiagram
 | discountApplyTm | string | Y | 할인적용시간 (HHMMSS) | "090000" |
 | remark | string | N | 비고 | "비고" |
 
+```json
+{
+  "transactionId": "550e8400-e29b-41d4-a716-446655440002",
+  "inCarDt": "20150710",
+  "inCarSeqNo": "000001",
+  "discountMtd": "C",
+  "discountTkKnd": "10000010",
+  "discountNumber": "discount123456",
+  "discountApplyDt": "20250704",
+  "discountApplyTm": "090000",
+  "remark": "비고"
+}
+```
+
 #### 📤 Response (미들웨어 → 중계서버)
 ```json
 {
@@ -279,6 +310,14 @@ sequenceDiagram
 | transactionId | string | Y | 트랜잭션 ID (UUID) | "550e8400-e29b-41d4-a716-446655440003" |
 | inCarDt | string | Y | 입차일자 (YYYYMMDD) | "20150710" |
 | inCarSeqNo | string | Y | 입차순번 | "000001" |
+
+```json
+{
+  "transactionId": "550e8400-e29b-41d4-a716-446655440003",
+  "inCarDt": "20150710",
+  "inCarSeqNo": "000001"
+}
+```
 
 #### 📤 Response (미들웨어 → 중계서버)
 ```json
@@ -336,6 +375,15 @@ sequenceDiagram
 | inCarDt | string | Y | 입차일자 (YYYYMMDD) | "20150710" |
 | inCarSeqNo | string | Y | 입차순번 | "000001" |
 | discountNumber | string | Y | 할인번호 | "discount123456" |
+
+```json
+{
+  "transactionId": "550e8400-e29b-41d4-a716-446655440004",
+  "inCarDt": "20150710",
+  "inCarSeqNo": "000001",
+  "discountNumber": "discount123456"
+}
+```
 
 #### 📤 Response (미들웨어 → 중계서버)
 ```json
@@ -472,7 +520,7 @@ curl -X POST https://relay.example.com/api/v2/mw/callback/550e8400-e29b-41d4-a71
 
 ### 3. 비동기 처리 고려사항
 - 모든 API는 즉시 응답 후 비동기 처리
-- Callback 타임아웃: 30초
+- Callback 타임아웃: 15초
 - 재시도 로직 구현 권장
 
 ### 4. 에러 처리
