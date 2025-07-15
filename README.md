@@ -110,7 +110,7 @@ sequenceDiagram
 
 #### API 엔드포인트
 - **URL**: `POST /incar/search`
-- **설명**: 차량번호로 입차 정보를 조회합니다.
+- **설명**: 차량번호로 입차 정보를 조회합니다. (전체 차량번호 또는 4자리로 검색 가능)
 
 #### 📥 Request (중계서버 → 미들웨어)
 | 필드명 | 타입 | 필수 | 설명 | 예시 |
@@ -145,15 +145,21 @@ sequenceDiagram
   "resultCode": "success",
   "resultMessage": "정상 처리되었습니다.",
   "data": {
-    "inCarDt": "20150710",
-    "inCarSeqNo": "000001",
-    "carNo": "11가1234",
-    "inCarTm": "090000",
-    "inParkCustTy": "1",
-    "inParkCutyTyName": "일반고객"
+    "inCar": [
+      {
+        "inCarDt": "20150710",
+        "inCarSeqNo": "000001",
+        "carNo": "11가1234",
+        "inCarTm": "090000",
+        "inParkCustTy": "1",
+        "inParkCutyTyName": "일반고객"
+      }
+    ]
   }
 }
 ```
+
+> **참고**: `inCar`는 입차 정보 배열입니다. 조회 기간 내에 여러 번의 입차 기록이 있는 경우 배열에 추가됩니다.
 
 #### 📤 Callback Response (중계서버 → 미들웨어)
 ```json
@@ -494,12 +500,16 @@ curl -X POST https://relay.example.com/api/v2/mw/callback/550e8400-e29b-41d4-a71
     "resultCode": "success",
     "resultMessage": "정상 처리되었습니다.",
     "data": {
-      "inCarDt": "20150710",
-      "inCarSeqNo": "000001",
-      "carNo": "11가1234",
-      "inCarTm": "090000",
-      "inParkCustTy": "1",
-      "inParkCutyTyName": "일반고객"
+      "inCar": [
+        {
+          "inCarDt": "20150710",
+          "inCarSeqNo": "000001",
+          "carNo": "11가1234",
+          "inCarTm": "090000",
+          "inParkCustTy": "1",
+          "inParkCutyTyName": "일반고객"
+        }
+      ]
     }
   }'
 ```
