@@ -11,6 +11,12 @@
 
 ## 🏗️ 시스템 개요
 
+### 연동 목적
+
+이 문서는 **외부 고객사의 주차장 시스템과의 원활한 연동**을 위해 중계서버와 미들웨어 간의 통신 방식을 표준화하고, 데이터 교환 프로토콜을 정의합니다. 
+
+주차장 운영의 핵심 기능인 **입차 조회**, **요금 계산**, **할인권 관리** 등의 업무를 비동기 처리 방식으로 안정적으로 수행하는 것을 목표로 합니다.
+
 ### 전체 시스템 아키텍처
 
 ```mermaid
@@ -213,7 +219,6 @@ sequenceDiagram
       {
         "discountMtd": "C",
         "discountTkKnd": "10000010",
-        "discountAmt": 1000,
         "webDiscountRegSeq": "0001",
         "discountNumber": "discount123456",
         "remark": "비고"
@@ -222,6 +227,8 @@ sequenceDiagram
   }
 }
 ```
+
+> **참고**: `discountInfo`는 할인권 정보 배열입니다. 여러 개의 할인권이 적용된 경우 배열에 추가됩니다.
 
 #### 📤 Callback Response (중계서버 → 미들웨어)
 ```json
@@ -341,7 +348,6 @@ sequenceDiagram
       {
         "discountMtd": "C",
         "discountTkKnd": "10000010",
-        "discountAmt": 1000,
         "webDiscountRegSeq": "0001",
         "discountNumber": "discount123456",
         "remark": "비고"
@@ -350,6 +356,8 @@ sequenceDiagram
   }
 }
 ```
+
+> **참고**: `discountInfo`는 할인권 정보 배열입니다. 등록된 모든 할인권 정보가 배열 형태로 반환됩니다.
 
 #### 📤 Callback Response (중계서버 → 미들웨어)
 ```json
@@ -529,8 +537,3 @@ curl -X POST https://relay.example.com/api/v2/mw/callback/550e8400-e29b-41d4-a71
 - Callback 미수신 시 타임아웃 처리
 
 ---
-
-## 📚 관련 문서
-- [OpenAPI 스펙 파일](./api_specification.yaml)
-- [시퀀스 다이어그램](./api_flow_diagram.md)
-- [프로토콜 정의](./protocol.txt) 
