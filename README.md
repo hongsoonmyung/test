@@ -159,7 +159,7 @@ sequenceDiagram
 }
 ```
 
-> **참고**: `inCar`는 입차 정보 배열입니다. 조회 기간 내에 여러 번의 입차 기록이 있는 경우 배열에 추가됩니다.
+> **참고**: `inCar`는 입차 정보 배열입니다. 입차 중 차량만 조회되며, 차량번호 4자리 중복 시 여러건 조회됩니다.
 
 #### 📤 Callback Response (중계서버 → 미들웨어)
 ```json
@@ -447,10 +447,7 @@ sequenceDiagram
 1. **Callback URL**: `/api/v2/mw/callback/{transactionId}`
 2. **HTTP Method**: POST
 3. **Content-Type**: application/json
-4. **타임아웃**: 30초
-5. **재시도**: 최대 3회
-
----
+4. **타임아웃**: 15초
 
 ## 💡 예제
 
