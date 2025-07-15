@@ -166,7 +166,7 @@ sequenceDiagram
 {
   "status": "200",
   "resultCode": "success",
-  "resultMessage": "Callback을 수신했습니다."
+  "resultMessage": "정상 처리되었습니다."
 }
 ```
 
@@ -241,7 +241,7 @@ sequenceDiagram
 {
   "status": "200",
   "resultCode": "success",
-  "resultMessage": "Callback을 수신했습니다."
+  "resultMessage": "정상 처리되었습니다."
 }
 ```
 
@@ -305,7 +305,7 @@ sequenceDiagram
 {
   "status": "200",
   "resultCode": "success",
-  "resultMessage": "Callback을 수신했습니다."
+  "resultMessage": "정상 처리되었습니다."
 }
 ```
 
@@ -370,7 +370,7 @@ sequenceDiagram
 {
   "status": "200",
   "resultCode": "success",
-  "resultMessage": "Callback을 수신했습니다."
+  "resultMessage": "정상 처리되었습니다."
 }
 ```
 
@@ -424,7 +424,7 @@ sequenceDiagram
 {
   "status": "200",
   "resultCode": "success",
-  "resultMessage": "Callback을 수신했습니다."
+  "resultMessage": "정상 처리되었습니다."
 }
 ```
 
@@ -449,21 +449,6 @@ sequenceDiagram
 3. **Content-Type**: application/json
 4. **타임아웃**: 30초
 5. **재시도**: 최대 3회
-
----
-
-## ⚠️ 에러 코드
-
-| 에러 코드 | 설명 | HTTP 상태 코드 |
-|-----------|------|----------------|
-| success | 정상 처리 | 200 |
-| 4001 | 필수 파라미터 누락 | 400 |
-| 4002 | 인증 실패 | 401 |
-| 4003 | 권한 없음 | 403 |
-| 4004 | 리소스 없음 | 404 |
-| 5001 | 서버 내부 오류 | 500 |
-| 5002 | 미들웨어 통신 오류 | 500 |
-| 5003 | 타임아웃 | 408 |
 
 ---
 
@@ -519,7 +504,7 @@ curl -X POST https://relay.example.com/api/v2/mw/callback/550e8400-e29b-41d4-a71
 {
   "status": "200",
   "resultCode": "success",
-  "resultMessage": "Callback을 수신했습니다."
+  "resultMessage": "정상 처리되었습니다."
 }
 ```
 
