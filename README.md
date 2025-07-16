@@ -155,7 +155,7 @@ sequenceDiagram
         "carNo4": "1234",
         "inCarTm": "090000",
         "inParkCustTy": "1",
-        "macNo": "001"
+        "inNiceMacNo": "COW211"
       }
     ]
   }
@@ -247,6 +247,7 @@ sequenceDiagram
         "discountTkKnd": "10000010",
         "webDiscountRegSeq": "0001",
         "discountNumber": "discount123456",
+        "discountAmt": 3000,
         "remark": "비고"
       }
     ]
@@ -512,7 +513,7 @@ curl -X POST https://relay.example.com/api/v2/mw/callback/550e8400-e29b-41d4-a71
           "carNo4": "1234",
           "inCarTm": "090000",
           "inParkCustTy": "1",
-          "macNo": "001"
+          "inNiceMacNo": "COW211"
         }
       ]
     }
