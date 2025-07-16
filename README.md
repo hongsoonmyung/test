@@ -152,7 +152,8 @@ sequenceDiagram
         "carNo": "11가1234",
         "inCarTm": "090000",
         "inParkCustTy": "1",
-        "inParkCutyTyName": "일반고객"
+        "inParkCutyTyName": "일반고객",
+        "macNo": "001"
       }
     ]
   }
@@ -185,13 +186,34 @@ sequenceDiagram
 | inCarDt | string | Y | 입차일자 (YYYYMMDD) | "20150710" |
 | inCarSeqNo | string | Y | 입차순번 | "000001" |
 | outScheduledTm | string | Y | 출차예정시간 (YYYYMMDDHHMMSS) | "20250714170000" |
+| discountInfo | array | N | 할인권 정보 배열 | - |
+
+**discountInfo 배열 구조**
+| 필드명 | 타입 | 필수 | 설명 | 예시 |
+|--------|------|------|------|------|
+| discountMtd | string | Y | 할인방식 | "C" |
+| discountTkKnd | string | Y | 할인권종류 | "10000010" |
+| discountNumber | string | Y | 할인번호 | "discount123456" |
+| discountApplyDt | string | Y | 할인적용일자 (YYYYMMDD) | "20250704" |
+| discountApplyTm | string | Y | 할인적용시간 (HHMMSS) | "090000" |
+| remark | string | N | 비고 | "비고" |
 
 ```json
 {
   "transactionId": "550e8400-e29b-41d4-a716-446655440001",
   "inCarDt": "20150710",
   "inCarSeqNo": "000001",
-  "outScheduledTm": "20250714170000"
+  "outScheduledTm": "20250714170000",
+  "discountInfo": [
+    {
+      "discountMtd": "C",
+      "discountTkKnd": "10000010",
+      "discountNumber": "discount123456",
+      "discountApplyDt": "20250704",
+      "discountApplyTm": "090000",
+      "remark": "비고"
+    }
+  ]
 }
 ```
 
@@ -489,7 +511,8 @@ curl -X POST https://relay.example.com/api/v2/mw/callback/550e8400-e29b-41d4-a71
           "carNo": "11가1234",
           "inCarTm": "090000",
           "inParkCustTy": "1",
-          "inParkCutyTyName": "일반고객"
+          "inParkCutyTyName": "일반고객",
+          "macNo": "001"
         }
       ]
     }
