@@ -117,13 +117,11 @@ sequenceDiagram
 |--------|------|------|------|------|
 | transactionId | string | Y | 트랜잭션 ID (UUID) | "550e8400-e29b-41d4-a716-446655440000" |
 | carNo | string | Y | 차량번호 | "12가3456" |
-| periodDays | integer | Y | 조회 기간 (일수) | 7 |
 
 ```json
 {
   "transactionId": "550e8400-e29b-41d4-a716-446655440000",
-  "carNo": "12가3456",
-  "periodDays": 7
+  "carNo": "12가3456"
 }
 ```
 
@@ -193,10 +191,8 @@ sequenceDiagram
 |--------|------|------|------|------|
 | discountMtd | string | Y | 할인방식 | "C" |
 | discountTkKnd | string | Y | 할인권종류 | "10000010" |
+| webDiscountRegSeq | string | Y | Web할인등록순번 | "0001" |
 | discountNumber | string | Y | 할인번호 | "discount123456" |
-| discountApplyDt | string | Y | 할인적용일자 (YYYYMMDD) | "20250704" |
-| discountApplyTm | string | Y | 할인적용시간 (HHMMSS) | "090000" |
-| remark | string | N | 비고 | "비고" |
 
 ```json
 {
@@ -208,10 +204,8 @@ sequenceDiagram
     {
       "discountMtd": "C",
       "discountTkKnd": "10000010",
-      "discountNumber": "discount123456",
-      "discountApplyDt": "20250704",
-      "discountApplyTm": "090000",
-      "remark": "비고"
+      "webDiscountRegSeq": "0001",
+      "discountNumber": "discount123456"
     }
   ]
 }
@@ -481,8 +475,7 @@ curl -X POST https://middleware.example.com/incar/search \
   -H "Content-Type: application/json" \
   -d '{
     "transactionId": "550e8400-e29b-41d4-a716-446655440000",
-    "carNo": "11가1234",
-    "periodDays": 7
+    "carNo": "11가1234"
   }'
 ```
 
