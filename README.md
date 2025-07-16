@@ -116,7 +116,11 @@ sequenceDiagram
 | 필드명 | 타입 | 필수 | 설명 | 예시 |
 |--------|------|------|------|------|
 | transactionId | string | Y | 트랜잭션 ID (UUID) | "550e8400-e29b-41d4-a716-446655440000" |
-| carNo | string | Y | 차량번호 | "12가3456" |
+| carNo | string | N* | 차량번호 (전체) | "12가3456" |
+| carNo4 | string | N* | 차량번호 (4자리) | "3456" |
+| carNoN | string | N* | 차량번호 (숫자만) | "123456" |
+
+> **참고**: `carNo`, `carNo4`, `carNoN` 중 **반드시 하나는 필수**입니다. 3가지 모두 없거나 2개 이상 동시에 전송하면 안됩니다.
 
 ```json
 {
@@ -148,9 +152,9 @@ sequenceDiagram
         "inCarDt": "20150710",
         "inCarSeqNo": "000001",
         "carNo": "11가1234",
+        "carNo4": "1234",
         "inCarTm": "090000",
         "inParkCustTy": "1",
-        "inParkCutyTyName": "일반고객",
         "macNo": "001"
       }
     ]
@@ -475,7 +479,10 @@ curl -X POST https://middleware.example.com/incar/search \
   -H "Content-Type: application/json" \
   -d '{
     "transactionId": "550e8400-e29b-41d4-a716-446655440000",
-    "carNo": "11가1234"
+    "carNo": "11가1234",
+    "carNo4": null,
+    "carNoN": null
+    ""
   }'
 ```
 
@@ -502,9 +509,9 @@ curl -X POST https://relay.example.com/api/v2/mw/callback/550e8400-e29b-41d4-a71
           "inCarDt": "20150710",
           "inCarSeqNo": "000001",
           "carNo": "11가1234",
+          "carNo4": "1234",
           "inCarTm": "090000",
           "inParkCustTy": "1",
-          "inParkCutyTyName": "일반고객",
           "macNo": "001"
         }
       ]
