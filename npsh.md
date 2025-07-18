@@ -6,6 +6,7 @@
 3. [상세 코드 흐름](#상세-코드-흐름)
 4. [핵심 기술](#핵심-기술)
 5. [성능 및 안정성](#성능-및-안정성)
+6. [서비스 종료 처리](#서비스-종료-처리)
 
 ---
 
@@ -19,6 +20,7 @@
 - **요금 계산**: 입차 정보 기반 주차 요금 계산
 - **할인권 관리**: 할인권 등록/조회/삭제
 - **비동기 처리**: Callback 방식의 안정적인 통신
+- **Graceful Shutdown**: 서비스 종료 시 안전한 세션 처리
 
 ### 전체 시스템 아키텍처
 
@@ -30,10 +32,10 @@ graph TB
     
     subgraph "중계서버 영역"
         Relay[ExternalInboundController<br/>고객사 API 인터페이스]
-        MWService[MW API 서비스<br/>비동기 처리]
-        SessionService[MW 세션 서비스<br/>세션 관리]
+        MWService[MW API 서비스<br/>비동기 처리 캡슐화]
+        SessionService[MW 세션 서비스<br/>메모리 기반 세션 관리]
         CallbackController[MW Callback 컨트롤러<br/>Callback 처리]
-        MongoDB[(MongoDB<br/>세션 저장소)]
+        HealthController[MW Health 컨트롤러<br/>상태 모니터링]
     end
     
     subgraph "미들웨어 영역"
@@ -43,9 +45,8 @@ graph TB
     end
     
     Client -->|HTTP POST 요청| Relay
-    Relay -->|비동기 요청| MWService
+    Relay -->|동기적 호출| MWService
     MWService -->|세션 생성| SessionService
-    SessionService -->|세션 저장| MongoDB
     MWService -->|HTTP 요청| MW
     MW -->|데이터 조회/처리| ParkingDB
     MW -->|단말기 제어| Terminal
@@ -55,16 +56,20 @@ graph TB
     MWService -->|최종 응답| Relay
     Relay -->|HTTP 응답| Client
     
+    HealthController -->|상태 조회| SessionService
+    
     classDef relayStyle fill:#e1f5fe
     classDef mwStyle fill:#f3e5f5
     classDef callbackStyle fill:#e8f5e8
     classDef clientStyle fill:#fff3e0
     classDef parkingStyle fill:#fce4ec
+    classDef healthStyle fill:#f1f8e9
     
     class Relay relayStyle
     class MWService relayStyle
     class SessionService relayStyle
     class CallbackController callbackStyle
+    class HealthController healthStyle
     class Client clientStyle
     class MW mwStyle
     class ParkingDB parkingStyle
@@ -80,27 +85,29 @@ graph TB
 src/main/java/com/npsharelink/api/
 ├── mw/ (신규 패키지)
 │   ├── controller/
-│   │   └── MwCallbackController.java
+│   │   ├── MwCallbackController.java
+│   │   └── MwHealthController.java
 │   ├── service/
-│   │   ├── MwApiService.java
+│   │   ├── MwApiService.java (직접 구현체)
 │   │   ├── MwCallbackService.java
-│   │   └── MwSessionService.java
+│   │   └── MwSessionService.java (직접 구현체)
 │   ├── domain/
 │   │   ├── dto/ (요청/응답 DTO)
-│   │   ├── entity/ (MongoDB 엔티티)
+│   │   ├── entity/ (메모리 기반 엔티티)
 │   │   └── enums/ (상태 enum)
 │   └── config/
 │       └── MwConfig.java
 └── nicepark/
     └── controller/v2/
-        └── ExternalInboundController.java (확장)
+        └── ExternalInboundController.java (단순화)
 ```
 
 ### 핵심 설계 원칙
 1. **관심사 분리**: 고객사 API와 비동기 처리 로직 분리
 2. **단순한 인터페이스**: ExternalInboundController는 단순히 MW 서비스 호출
-3. **자동화된 비동기 처리**: 세션 관리, 타임아웃, 에러 처리 자동화
-4. **타입 안전성**: API 타입별 응답 DTO 변환
+3. **캡슐화된 비동기 처리**: MW 서비스에서 모든 비동기 로직 처리
+4. **메모리 기반 세션 관리**: MongoDB 없이 메모리에서 세션 관리
+5. **단순한 구조**: 인터페이스 분리 없이 직접 구현체 사용
 
 ---
 
@@ -119,7 +126,7 @@ curl -X POST http://localhost:8080/api/v2/external/incar/search \
   }'
 ```
 
-**ExternalInboundController 처리:**
+**ExternalInboundController 처리 (단순화됨):**
 ```java
 @PostMapping("/incar/search")
 public CommonResponse<InCarSearchResponseDto> searchInCar(@RequestBody @Valid InCarSearchRequestDto request) {
@@ -133,11 +140,8 @@ public CommonResponse<InCarSearchResponseDto> searchInCar(@RequestBody @Valid In
         log.info("[External API] 입차 조회 요청: transactionId={}, carNo={}", 
                 request.getTransactionId(), request.getCarNo());
         
-        // 3. MW API 서비스 호출 (비동기)
-        CompletableFuture<InCarSearchResponseDto> future = mwApiService.searchInCar(request);
-        
-        // 4. 결과 대기 및 반환
-        InCarSearchResponseDto response = future.get();
+        // 3. MW API 서비스 호출 (동기적 인터페이스)
+        InCarSearchResponseDto response = mwApiService.searchInCar(request);
         
         log.info("[External API] 입차 조회 완료: transactionId={}", request.getTransactionId());
         return createSuccess(SUCCESS, response);
@@ -149,11 +153,11 @@ public CommonResponse<InCarSearchResponseDto> searchInCar(@RequestBody @Valid In
 }
 ```
 
-### 2단계: MW API 서비스 처리
+### 2단계: MW API 서비스 처리 (캡슐화된 비동기 처리)
 
-**MwApiServiceImpl.processAsyncRequest() 메서드:**
+**MwApiService.processAsyncRequest() 메서드:**
 ```java
-private <T, R> CompletableFuture<R> processAsyncRequest(String apiPath, T request, Class<R> responseClass) {
+private <T, R> R processAsyncRequest(String apiPath, T request, Class<R> responseClass) {
     try {
         // 1. TransactionId 추출 또는 생성
         String transactionId = getTransactionId(request);
@@ -161,43 +165,43 @@ private <T, R> CompletableFuture<R> processAsyncRequest(String apiPath, T reques
         // 2. 요청 데이터를 JSON으로 변환
         String requestJson = objectMapper.writeValueAsString(request);
         
-        // 3. 세션 생성 (MongoDB에 저장)
+        // 3. 세션 생성 (메모리에 저장)
         MwSessionEntity session = mwSessionService.createSession(transactionId, apiPath, requestJson);
         
         // 4. 미들웨어로 비동기 요청 전송
         sendAsyncRequestToMiddleware(apiPath, request);
         
-        // 5. 세션 완료 대기 및 결과 반환
-        return mwSessionService.waitForSession(transactionId)
-                .thenApply(sessionEntity -> {
-                    try {
-                        if (sessionEntity.getResponseData() != null) {
-                            return objectMapper.readValue(sessionEntity.getResponseData(), responseClass);
-                        } else {
-                            return null;
-                        }
-                    } catch (Exception e) {
-                        log.error("[MW API] 응답 데이터 파싱 오류: transactionId={}", transactionId, e);
-                        throw new RuntimeException("응답 데이터 파싱 오류", e);
-                    }
-                });
+        // 5. 세션 완료 대기 및 결과 반환 (동기적 대기)
+        MwSessionEntity sessionEntity = mwSessionService.waitForSession(transactionId).get(15, TimeUnit.SECONDS);
+        
+        if (sessionEntity.getResponseData() != null) {
+            return objectMapper.readValue(sessionEntity.getResponseData(), responseClass);
+        } else {
+            return null;
+        }
                 
     } catch (Exception e) {
         log.error("[MW API] 비동기 요청 처리 오류: apiPath={}", apiPath, e);
-        return CompletableFuture.failedFuture(e);
+        throw new RuntimeException("MW API 처리 중 오류가 발생했습니다: " + e.getMessage(), e);
     }
 }
 ```
 
-### 3단계: 세션 생성 및 관리
+### 3단계: 세션 생성 및 관리 (메모리 기반)
 
-**MwSessionServiceImpl.createSession() 메서드:**
+**MwSessionService.createSession() 메서드:**
 ```java
 public MwSessionEntity createSession(String transactionId, String apiType, String requestData) {
+    // 서비스 종료 중이면 새 세션 생성 거부
+    if (isShuttingDown) {
+        log.warn("[MW Session] 서비스 종료 중 - 새 세션 생성 거부: transactionId={}", transactionId);
+        throw new RuntimeException("서비스가 종료 중입니다. 잠시 후 다시 시도해주세요.");
+    }
+    
     LocalDateTime now = LocalDateTime.now();
     LocalDateTime expiredAt = now.plusSeconds(15); // 15초 타임아웃
     
-    // 1. 세션 엔티티 생성
+    // 1. 메모리에서 세션 엔티티 생성
     MwSessionEntity session = MwSessionEntity.builder()
             .transactionId(transactionId)
             .apiType(apiType)
@@ -207,14 +211,11 @@ public MwSessionEntity createSession(String transactionId, String apiType, Strin
             .expiredAt(expiredAt)
             .build();
     
-    // 2. MongoDB에 저장
-    MwSessionEntity savedSession = mongoTemplate.save(session);
-    
-    // 3. CompletableFuture 생성 및 저장 (메모리)
+    // 2. CompletableFuture 생성 및 저장 (메모리)
     CompletableFuture<MwSessionEntity> future = new CompletableFuture<>();
     sessionFutures.put(transactionId, future);
     
-    // 4. 15초 후 타임아웃 처리 스케줄링
+    // 3. 15초 후 타임아웃 처리 스케줄링
     CompletableFuture.delayedExecutor(15, TimeUnit.SECONDS).execute(() -> {
         if (!future.isDone()) {
             timeoutSession(transactionId);
@@ -222,7 +223,7 @@ public MwSessionEntity createSession(String transactionId, String apiType, Strin
     });
     
     log.info("[MW Session] 세션 생성 완료: transactionId={}, apiType={}", transactionId, apiType);
-    return savedSession;
+    return session;
 }
 ```
 
@@ -334,14 +335,14 @@ public ResponseEntity<MwCallbackResponseDto> processCallback(
 }
 ```
 
-**MwCallbackServiceImpl.processCallback() 메서드:**
+**MwCallbackService.processCallback() 메서드:**
 ```java
 public MwCallbackResponseDto processCallback(String transactionId, MwCallbackRequestDto callbackRequest) {
     try {
         log.info("[MW Callback] Callback 수신: transactionId={}, status={}, resultCode={}", 
                 transactionId, callbackRequest.getStatus(), callbackRequest.getResultCode());
         
-        // 1. 세션 조회
+        // 1. 세션 조회 (메모리에서)
         MwSessionEntity session = mwSessionService.getSession(transactionId);
         if (session == null) {
             log.error("[MW Callback] 세션을 찾을 수 없음: transactionId={}", transactionId);
@@ -375,31 +376,30 @@ public MwCallbackResponseDto processCallback(String transactionId, MwCallbackReq
 }
 ```
 
-### 7단계: 세션 완료 처리
+### 7단계: 세션 완료 처리 (메모리 기반)
 
-**MwSessionServiceImpl.completeSession() 메서드:**
+**MwSessionService.completeSession() 메서드:**
 ```java
 public MwSessionEntity completeSession(String transactionId, String responseData) {
-    // 1. MongoDB 세션 업데이트
-    Query query = new Query(Criteria.where("transactionId").is(transactionId));
-    Update update = new Update()
-            .set("responseData", responseData)
-            .set("status", MwSessionStatus.COMPLETED.name())
-            .set("completedAt", LocalDateTime.now());
-    
-    MwSessionEntity updatedSession = mongoTemplate.findAndModify(query, update, MwSessionEntity.class);
-    
-    if (updatedSession != null) {
+    CompletableFuture<MwSessionEntity> future = sessionFutures.get(transactionId);
+    if (future != null && !future.isDone()) {
+        // 1. 세션 완료 처리 (메모리)
+        MwSessionEntity completedSession = MwSessionEntity.builder()
+                .transactionId(transactionId)
+                .responseData(responseData)
+                .status(MwSessionStatus.COMPLETED.name())
+                .completedAt(LocalDateTime.now())
+                .build();
+        
         // 2. CompletableFuture 완료 처리 (메모리)
-        CompletableFuture<MwSessionEntity> future = sessionFutures.remove(transactionId);
-        if (future != null && !future.isDone()) {
-            future.complete(updatedSession); // 여기서 ExternalInboundController의 future.get()이 완료됨
-        }
+        future.complete(completedSession);
+        sessionFutures.remove(transactionId); // 자동 정리
         
         log.info("[MW Session] 세션 완료: transactionId={}", transactionId);
+        return completedSession;
     }
     
-    return updatedSession;
+    return null;
 }
 ```
 
@@ -432,15 +432,15 @@ public MwSessionEntity completeSession(String transactionId, String responseData
 
 ## 🔧 핵심 기술
 
-### 1. 비동기 처리 (CompletableFuture)
-- **동기적 인터페이스**: 고객사는 동기적으로 API 호출
-- **비동기적 처리**: 내부적으로 비동기 처리로 성능 최적화
-- **타임아웃 처리**: 15초 자동 타임아웃
+### 1. 캡슐화된 비동기 처리
+- **동기적 인터페이스**: 컨트롤러는 단순한 동기적 호출
+- **내부 비동기 처리**: MW 서비스에서 모든 비동기 로직 처리
+- **타임아웃 처리**: 15초 자동 타임아웃 (MW 서비스 내부에서 처리)
 
-### 2. 세션 관리 (MongoDB)
-- **세션 저장**: MongoDB에 세션 정보 저장
+### 2. 메모리 기반 세션 관리
+- **메모리 저장**: ConcurrentHashMap을 사용한 세션 관리
 - **상태 관리**: PENDING → COMPLETED/ERROR/TIMEOUT
-- **자동 정리**: 만료된 세션 자동 정리 (1분마다)
+- **자동 정리**: CompletableFuture 완료 시 자동 제거
 
 ### 3. Callback 처리
 - **RESTful API**: `/api/v2/mw/callback/{transactionId}`
@@ -452,25 +452,124 @@ public MwSessionEntity completeSession(String transactionId, String responseData
 - **자동 변환**: JSON ↔ DTO 자동 변환
 - **검증**: Bean Validation을 통한 데이터 검증
 
+### 5. 단순한 구조
+- **직접 구현체**: 인터페이스 분리 없이 단순한 구조
+- **유지보수성**: 한 파일에서 모든 로직 관리
+- **가독성**: 복잡한 추상화 레이어 제거
+
 ---
 
 ## ⚡ 성능 및 안정성
 
 ### 성능 최적화
-1. **비동기 처리**: 미들웨어 요청을 비동기로 처리
+1. **캡슐화된 비동기 처리**: 컨트롤러는 단순하고, 복잡한 로직은 MW 서비스에서 처리
 2. **메모리 관리**: CompletableFuture를 메모리에서 관리
-3. **자동 정리**: 만료된 세션 자동 정리
+3. **자동 정리**: 세션 완료 시 자동으로 메모리에서 제거
 
 ### 안정성 보장
-1. **타임아웃 처리**: 15초 자동 타임아웃
+1. **타임아웃 처리**: 15초 자동 타임아웃 (MW 서비스 내부에서 처리)
 2. **에러 핸들링**: 네트워크 오류, 파싱 오류 등 처리
 3. **로깅**: 상세한 트랜잭션 추적
 4. **재시도 로직**: 미들웨어 통신 실패 시 재시도 가능
 
 ### 모니터링
-1. **세션 상태**: MongoDB를 통한 세션 상태 모니터링
+1. **세션 상태**: 메모리 기반 세션 상태 모니터링
 2. **성능 지표**: 응답 시간, 처리량 등 측정
 3. **에러 추적**: 에러 발생 시 상세 로그 기록
+
+---
+
+## 🛡️ 서비스 종료 처리
+
+### Graceful Shutdown 구현
+
+**Spring Boot 설정:**
+```yaml
+# Graceful Shutdown 설정
+server:
+  shutdown: graceful
+  # Graceful Shutdown 타임아웃 (기본값: 30초)
+  # 진행 중인 요청이 완료될 때까지 최대 30초 대기
+  # 30초 후에도 완료되지 않으면 강제 종료
+  # 주의: MW API의 15초 타임아웃보다 충분히 길게 설정
+  # 15초 + 여유시간 = 30초로 설정
+
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+```
+
+**MwSessionService Graceful Shutdown:**
+```java
+@PreDestroy
+public void gracefulShutdown() {
+    log.info("[MW Session] Graceful Shutdown 시작 - 진행 중인 세션 처리 중...");
+    
+    // 서비스 종료 플래그 설정
+    isShuttingDown = true;
+    
+    // 진행 중인 세션 수 확인
+    int pendingSessions = sessionFutures.size();
+    log.info("[MW Session] 진행 중인 세션 수: {}", pendingSessions);
+    
+    if (pendingSessions > 0) {
+        // 모든 진행 중인 세션을 타임아웃 처리
+        sessionFutures.keySet().forEach(transactionId -> {
+            log.info("[MW Session] 서비스 종료로 인한 세션 타임아웃 처리: transactionId={}", transactionId);
+            timeoutSession(transactionId);
+        });
+        
+        // 잠시 대기하여 타임아웃 처리 완료 확인
+        try {
+            Thread.sleep(1000); // 1초 대기
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+    
+    log.info("[MW Session] Graceful Shutdown 완료 - 모든 세션 처리됨");
+}
+```
+
+### Health Check 기능
+
+**MwHealthController:**
+```java
+@GetMapping
+public ResponseEntity<Map<String, Object>> getHealth() {
+    Map<String, Object> healthInfo = new HashMap<>();
+    
+    try {
+        // 진행 중인 세션 수 조회
+        int pendingSessions = mwSessionService.getPendingSessionCount();
+        
+        healthInfo.put("status", "UP");
+        healthInfo.put("service", "MW API Service");
+        healthInfo.put("pendingSessions", pendingSessions);
+        healthInfo.put("timestamp", System.currentTimeMillis());
+        
+        // 진행 중인 세션이 많으면 경고
+        if (pendingSessions > 10) {
+            healthInfo.put("warning", "진행 중인 세션이 많습니다: " + pendingSessions + "개");
+            log.warn("[MW Health] 진행 중인 세션이 많음: {}개", pendingSessions);
+        }
+        
+        return ResponseEntity.ok(healthInfo);
+        
+    } catch (Exception e) {
+        healthInfo.put("status", "DOWN");
+        healthInfo.put("error", e.getMessage());
+        return ResponseEntity.status(503).body(healthInfo);
+    }
+}
+```
+
+### 서비스 종료 시나리오
+
+1. **새 요청 거부**: 서비스 종료 중에는 새 세션 생성 거부
+2. **진행 중인 세션 처리**: 모든 진행 중인 세션을 타임아웃 처리
+3. **안전한 종료**: 30초 타임아웃 내에 모든 처리 완료
+4. **모니터링**: Health Check를 통한 세션 상태 확인
 
 ---
 
@@ -490,22 +589,31 @@ public MwSessionEntity completeSession(String transactionId, String responseData
 |-----|--------|-----|------|
 | Callback 처리 | POST | `/api/v2/mw/callback/{transactionId}` | 미들웨어 Callback 수신 |
 
+### 모니터링 API
+| API | Method | URL | 설명 |
+|-----|--------|-----|------|
+| Health Check | GET | `/api/v2/mw/health` | MW 서비스 상태 확인 |
+| 세션 수 조회 | GET | `/api/v2/mw/health/sessions` | 진행 중인 세션 수 조회 |
+
 ---
 
 ## 🎯 결론
 
-이 시스템은 **비동기 처리**, **세션 관리**, **타임아웃 처리**, **에러 핸들링**이 모두 자동화된 안정적인 API 통합 시스템입니다.
+이 시스템은 **캡슐화된 비동기 처리**, **메모리 기반 세션 관리**, **타임아웃 처리**, **에러 핸들링**, **Graceful Shutdown**이 모두 자동화된 안정적인 API 통합 시스템입니다.
 
 ### 주요 장점
-1. **단순한 인터페이스**: 고객사는 동기적으로 API 호출
-2. **안정적인 처리**: 비동기 처리로 성능 최적화
-3. **자동화된 관리**: 세션, 타임아웃, 에러 처리 자동화
-4. **확장 가능한 구조**: 새로운 API 추가 용이
+1. **단순한 컨트롤러**: ExternalInboundController는 단순한 동기적 호출만 담당
+2. **캡슐화된 복잡성**: 모든 비동기 처리 로직은 MW 서비스에서 처리
+3. **메모리 기반 관리**: MongoDB 없이 메모리에서 효율적인 세션 관리
+4. **단순한 구조**: 인터페이스 분리 없이 직관적인 코드 구조
+5. **안전한 종료**: Graceful Shutdown으로 서비스 종료 시 안전한 처리
+6. **확장 가능한 구조**: 새로운 API 추가 용이
 
 ### 활용 사례
 - 주차장 관리 시스템 연동
 - 실시간 데이터 처리
 - 대용량 트랜잭션 처리
 - 안정적인 외부 시스템 연동
+- 컨테이너 환경에서의 안전한 배포
 
 이러한 설계를 통해 고객사 시스템과 미들웨어 간의 안정적이고 효율적인 통신을 구현할 수 있습니다! 🚀 
