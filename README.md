@@ -152,7 +152,6 @@ sequenceDiagram
         "inCarDt": "20150710",
         "inCarSeqNo": "000001",
         "carNo": "11가1234",
-        "carNo4": "1234",
         "inCarTm": "090000",
         "inParkCustTy": "1",
         "inNiceMacNo": "COW211"
@@ -373,10 +372,13 @@ sequenceDiagram
   "data": {
     "discountInfo": [
       {
+        "webDiscountRegSeq": "0001",
         "discountMtd": "C",
         "discountTkKnd": "10000010",
-        "webDiscountRegSeq": "0001",
         "discountNumber": "discount123456",
+        "niceMacNo": "",
+        "discountApplyDt": "20250728",
+        "discountApplyTm": "112233",
         "remark": "비고"
       }
     ]
