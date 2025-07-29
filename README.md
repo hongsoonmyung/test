@@ -152,7 +152,6 @@ sequenceDiagram
         "inCarDt": "20150710",
         "inCarSeqNo": "000001",
         "carNo": "11가1234",
-        "carNo4": "1234",
         "inCarTm": "090000",
         "inParkCustTy": "1",
         "inNiceMacNo": "COW211"
