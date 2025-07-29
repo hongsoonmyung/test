@@ -373,10 +373,10 @@ sequenceDiagram
     "discountInfo": [
       {
         "webDiscountRegSeq": "1",
+        "niceMacNo": "555891",
         "discountMtd": "C",
         "discountTkKnd": "10000010",       
-        "discountNumber": "discount123456",
-        "niceMacNo": "555891",
+        "discountNumber": "discount123456",        
         "discountApplyDt": "20250711",
         "discountApplyTm": "112233",
         "remark": "비고"
