@@ -150,11 +150,11 @@ sequenceDiagram
     "inCar": [
       {
         "inCarDt": "20150710",
-        "inCarSeqNo": "000001",
-        "carNo": "11가1234",
         "inCarTm": "090000",
+        "inCarSeqNo": "000001",
         "inParkCustTy": "1",
         "inNiceMacNo": "COW211"
+        "carNo": "11가1234"
       }
     ]
   }
